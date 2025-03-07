@@ -1,0 +1,68 @@
+[01.26.25 23:37:55] Args: {
+    "JK": "max",
+    "add_coexp": false,
+    "alpha": 1.5,
+    "batch_size": 4,
+    "classifier_hidden_size": [
+        32,
+        16
+    ],
+    "control_file_path": "/storage1/fs1/fuhai.li/Active/haoran.song/Xiao_data/input_data/LYMPHOID_CELLS_WT.csv",
+    "drop_prob": 0.1,
+    "ema_decay": 0.999,
+    "embed_sizes": [
+        768,
+        256,
+        64,
+        16
+    ],
+    "eval_steps": 30000,
+    "expander_output_size": 32,
+    "gamma": 2,
+    "gene_symbol_file_path": "/storage1/fs1/fuhai.li/Active/haoran.song/Xiao_data/scripts/genes.npz",
+    "gpu_ids": [
+        0
+    ],
+    "gs_path": "data/network/gene_feature/gene_gs_dict.json",
+    "head": 8,
+    "hidden_size": 16,
+    "input_size": 1,
+    "l2_wd": 3e-07,
+    "llm_genesets_embedding_file_path": "data/text/geneset_text_embs.npy",
+    "llm_text_embedding_file_path": "data/text/gene_text_embs.npy",
+    "load_path": null,
+    "lr": 1e-05,
+    "max_checkpoints": 5,
+    "max_grad_norm": 5.0,
+    "max_length": 10,
+    "maximize_metric": true,
+    "metric_name": "AUC",
+    "name": "test",
+    "network_database_path": "data/network/network/processed_network.npz",
+    "num_edges": 6,
+    "num_epochs": 25,
+    "num_in_degree": 13,
+    "num_layer": 6,
+    "num_nodes": 2651,
+    "num_out_degree": 431,
+    "num_paths": 923,
+    "num_workers": 0,
+    "output_size": 2,
+    "pathway_mode": "pairs",
+    "r": 2,
+    "reg_mode": "deg",
+    "reg_weight": 0.1,
+    "runs": 1,
+    "save_dir": "./save/train_classifier/test-11",
+    "seed": 224,
+    "test_file_path": "/storage1/fs1/fuhai.li/Active/haoran.song/Xiao_data/input_data/LYMPHOID_CELLS_HOM.csv",
+    "test_ratio": 0.2,
+    "top_gene": 6000,
+    "val_ratio": 0.1
+}
+[01.26.25 23:37:55] Start run 1
+[01.26.25 23:37:55] Using random seed 1503656836...
+[01.26.25 23:37:55] Building model...
+[01.26.25 23:37:55] Saver will maximize AUC...
+[01.26.25 23:37:56] train the model on classification...
+[01.26.25 23:37:56] Starting epoch 1...

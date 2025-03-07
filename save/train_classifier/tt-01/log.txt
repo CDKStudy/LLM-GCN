@@ -1,0 +1,281 @@
+[03.02.25 02:10:43] Args: {
+    "JK": "max",
+    "add_coexp": false,
+    "alpha": 1.5,
+    "batch_size": 4,
+    "classifier_hidden_size": [
+        32,
+        16
+    ],
+    "control_file_path": "data/Xiao_data/input_data/PANCREAS_ALPHA_CELL_WT.csv",
+    "drop_prob": 0.1,
+    "ema_decay": 0.999,
+    "embed_sizes": 768,
+    "eval_steps": 30000,
+    "expander_output_size": 32,
+    "gamma": 2,
+    "gene_mlp_hidden": [
+        64
+    ],
+    "gene_symbol_file_path": "data/Xiao_data/scripts/genes.npz",
+    "gpu_ids": [
+        0
+    ],
+    "gs_path": "data/network/gene_feature/gene_gs_dict.json",
+    "head": 8,
+    "hidden_size": 16,
+    "input_size": 1656,
+    "l2_wd": 3e-07,
+    "llm_genesets_embedding_file_path": "data/text/geneset_text_embs.npy",
+    "llm_text_embedding_file_path": "data/text/gene_text_embs.npy",
+    "load_path": null,
+    "lr": 1e-05,
+    "max_checkpoints": 5,
+    "max_grad_norm": 5.0,
+    "max_length": 10,
+    "maximize_metric": true,
+    "metric_name": "AUC",
+    "name": "tt",
+    "network_database_path": "data/network/network/processed_network.npz",
+    "num_edges": 6,
+    "num_epochs": 25,
+    "num_layer": 6,
+    "num_nodes": 74,
+    "num_workers": 0,
+    "output_size": 2,
+    "pathway_mode": "pairs",
+    "pool_ratio": 0.5,
+    "pred_mlp_hidden": [
+        64
+    ],
+    "r": 2,
+    "reg_mode": "deg",
+    "reg_weight": 0.1,
+    "runs": 1,
+    "save_dir": "./save/train_classifier\\tt-01",
+    "seed": 224,
+    "test_file_path": "data/Xiao_data/input_data/PANCREAS_ALPHA_CELL_HOM.csv",
+    "test_ratio": 0.2,
+    "top_gene": 6000,
+    "val_ratio": 0.1
+}
+[03.02.25 02:10:43] Start run 1
+[03.02.25 02:10:43] Using random seed 3109218613...
+[03.02.25 02:10:43] Building model...
+[03.02.25 02:10:43] Saver will maximize AUC...
+[03.02.25 02:10:43] Training the model on classification...
+[03.02.25 02:10:43] Starting epoch 1...
+[03.02.25 02:10:44] Train Loss: 0.648118538015029
+[03.02.25 02:10:44] Evaluating after epoch 1...
+[03.02.25 02:10:44] NLL Loss: 0.3935293810708182
+[03.02.25 02:10:44] Current LR: 1e-05
+[03.02.25 02:10:44] Val Loss: 00.69, Accuracy: 00.75, Recall: 00.00, Precision: 00.00, Specificity: 01.00, F1: 00.00, AUC: 00.00
+[03.02.25 02:10:44] NLL Loss: 0.6874252557754517
+[03.02.25 02:10:44] Test Loss: 00.69, Accuracy: 00.44, Recall: 00.10, Precision: 01.00, Specificity: 01.00, F1: 00.18, AUC: 00.65
+[03.02.25 02:10:44] Saved checkpoint: ./save/train_classifier\tt-01\step_1
+[03.02.25 02:10:44] New best checkpoint at step 1...
+[03.02.25 02:10:44] New reg best reg checkpoint at step 1...
+[03.02.25 02:10:44] Starting epoch 2...
+[03.02.25 02:10:44] Train Loss: 0.6516610080120611
+[03.02.25 02:10:44] Evaluating after epoch 2...
+[03.02.25 02:10:44] NLL Loss: 0.3935050964355469
+[03.02.25 02:10:44] Current LR: 1e-05
+[03.02.25 02:10:44] Val Loss: 00.69, Accuracy: 00.75, Recall: 00.00, Precision: 00.00, Specificity: 01.00, F1: 00.00, AUC: 00.00
+[03.02.25 02:10:44] Saved checkpoint: ./save/train_classifier\tt-01\step_2
+[03.02.25 02:10:44] Starting epoch 3...
+[03.02.25 02:10:45] Train Loss: 0.6517601106681076
+[03.02.25 02:10:45] Evaluating after epoch 3...
+[03.02.25 02:10:45] NLL Loss: 0.39341282844543457
+[03.02.25 02:10:45] Current LR: 1e-05
+[03.02.25 02:10:45] Val Loss: 00.69, Accuracy: 00.75, Recall: 00.00, Precision: 00.00, Specificity: 01.00, F1: 00.00, AUC: 00.00
+[03.02.25 02:10:45] Saved checkpoint: ./save/train_classifier\tt-01\step_3
+[03.02.25 02:10:45] Starting epoch 4...
+[03.02.25 02:10:45] Train Loss: 0.6534992526559269
+[03.02.25 02:10:45] Evaluating after epoch 4...
+[03.02.25 02:10:45] NLL Loss: 0.3932536670139858
+[03.02.25 02:10:45] Current LR: 1e-05
+[03.02.25 02:10:45] Val Loss: 00.69, Accuracy: 00.75, Recall: 00.00, Precision: 00.00, Specificity: 01.00, F1: 00.00, AUC: 00.00
+[03.02.25 02:10:45] Saved checkpoint: ./save/train_classifier\tt-01\step_4
+[03.02.25 02:10:45] Starting epoch 5...
+[03.02.25 02:10:45] Train Loss: 0.6515384421629065
+[03.02.25 02:10:45] Evaluating after epoch 5...
+[03.02.25 02:10:45] NLL Loss: 0.3931361607142857
+[03.02.25 02:10:45] Current LR: 1e-05
+[03.02.25 02:10:45] Val Loss: 00.69, Accuracy: 00.75, Recall: 00.00, Precision: 00.00, Specificity: 01.00, F1: 00.00, AUC: 00.00
+[03.02.25 02:10:45] Saved checkpoint: ./save/train_classifier\tt-01\step_5
+[03.02.25 02:10:45] Starting epoch 6...
+[03.02.25 02:10:45] Train Loss: 0.6544016108793371
+[03.02.25 02:10:45] Evaluating after epoch 6...
+[03.02.25 02:10:45] NLL Loss: 0.39297594342912945
+[03.02.25 02:10:45] Current LR: 1e-05
+[03.02.25 02:10:45] Val Loss: 00.69, Accuracy: 00.75, Recall: 00.00, Precision: 00.00, Specificity: 01.00, F1: 00.00, AUC: 00.00
+[03.02.25 02:10:45] Saved checkpoint: ./save/train_classifier\tt-01\step_6
+[03.02.25 02:10:45] Removed checkpoint: ./save/train_classifier\tt-01\step_1
+[03.02.25 02:10:45] Starting epoch 7...
+[03.02.25 02:10:46] Train Loss: 0.6543131529116163
+[03.02.25 02:10:46] Evaluating after epoch 7...
+[03.02.25 02:10:46] NLL Loss: 0.39275574684143066
+[03.02.25 02:10:46] Current LR: 9.972883382072953e-06
+[03.02.25 02:10:46] Val Loss: 00.69, Accuracy: 00.75, Recall: 00.00, Precision: 00.00, Specificity: 01.00, F1: 00.00, AUC: 00.33
+[03.02.25 02:10:46] NLL Loss: 0.6860809624195099
+[03.02.25 02:10:46] Test Loss: 00.69, Accuracy: 00.44, Recall: 00.10, Precision: 01.00, Specificity: 01.00, F1: 00.18, AUC: 00.67
+[03.02.25 02:10:46] Saved checkpoint: ./save/train_classifier\tt-01\step_7
+[03.02.25 02:10:46] New best checkpoint at step 7...
+[03.02.25 02:10:46] Removed checkpoint: ./save/train_classifier\tt-01\step_2
+[03.02.25 02:10:46] Starting epoch 8...
+[03.02.25 02:10:46] Train Loss: 0.649734286700978
+[03.02.25 02:10:46] Evaluating after epoch 8...
+[03.02.25 02:10:46] NLL Loss: 0.39261187825884136
+[03.02.25 02:10:46] Current LR: 9.972883382072953e-06
+[03.02.25 02:10:46] Val Loss: 00.69, Accuracy: 00.75, Recall: 00.00, Precision: 00.00, Specificity: 01.00, F1: 00.00, AUC: 00.33
+[03.02.25 02:10:46] Saved checkpoint: ./save/train_classifier\tt-01\step_8
+[03.02.25 02:10:46] Removed checkpoint: ./save/train_classifier\tt-01\step_3
+[03.02.25 02:10:46] Starting epoch 9...
+[03.02.25 02:10:46] Train Loss: 0.6480812792684517
+[03.02.25 02:10:46] Evaluating after epoch 9...
+[03.02.25 02:10:46] NLL Loss: 0.392345666885376
+[03.02.25 02:10:46] Current LR: 9.972883382072953e-06
+[03.02.25 02:10:46] Val Loss: 00.69, Accuracy: 00.75, Recall: 00.00, Precision: 00.00, Specificity: 01.00, F1: 00.00, AUC: 00.33
+[03.02.25 02:10:46] Saved checkpoint: ./save/train_classifier\tt-01\step_9
+[03.02.25 02:10:46] Removed checkpoint: ./save/train_classifier\tt-01\step_4
+[03.02.25 02:10:46] Starting epoch 10...
+[03.02.25 02:10:46] Train Loss: 0.6501185099283854
+[03.02.25 02:10:46] Evaluating after epoch 10...
+[03.02.25 02:10:46] NLL Loss: 0.3920187268938337
+[03.02.25 02:10:46] Current LR: 9.757729755661012e-06
+[03.02.25 02:10:46] Val Loss: 00.69, Accuracy: 00.75, Recall: 00.00, Precision: 00.00, Specificity: 01.00, F1: 00.00, AUC: 01.00
+[03.02.25 02:10:46] NLL Loss: 0.6845701783895493
+[03.02.25 02:10:46] Test Loss: 00.68, Accuracy: 00.56, Recall: 00.40, Precision: 00.80, Specificity: 00.83, F1: 00.53, AUC: 00.70
+[03.02.25 02:10:46] Saved checkpoint: ./save/train_classifier\tt-01\step_10
+[03.02.25 02:10:46] New best checkpoint at step 10...
+[03.02.25 02:10:46] Removed checkpoint: ./save/train_classifier\tt-01\step_5
+[03.02.25 02:10:46] Starting epoch 11...
+[03.02.25 02:10:47] Train Loss: 0.6482035552754122
+[03.02.25 02:10:47] Evaluating after epoch 11...
+[03.02.25 02:10:47] NLL Loss: 0.39192090715680805
+[03.02.25 02:10:47] Current LR: 9.757729755661012e-06
+[03.02.25 02:10:47] Val Loss: 00.69, Accuracy: 00.75, Recall: 00.00, Precision: 00.00, Specificity: 01.00, F1: 00.00, AUC: 01.00
+[03.02.25 02:10:47] Saved checkpoint: ./save/train_classifier\tt-01\step_11
+[03.02.25 02:10:47] Removed checkpoint: ./save/train_classifier\tt-01\step_6
+[03.02.25 02:10:47] Starting epoch 12...
+[03.02.25 02:10:47] Train Loss: 0.6416442581251556
+[03.02.25 02:10:47] Evaluating after epoch 12...
+[03.02.25 02:10:47] NLL Loss: 0.3916820798601423
+[03.02.25 02:10:47] Current LR: 9.757729755661012e-06
+[03.02.25 02:10:47] Val Loss: 00.69, Accuracy: 00.75, Recall: 00.00, Precision: 00.00, Specificity: 01.00, F1: 00.00, AUC: 01.00
+[03.02.25 02:10:47] Saved checkpoint: ./save/train_classifier\tt-01\step_12
+[03.02.25 02:10:47] Removed checkpoint: ./save/train_classifier\tt-01\step_7
+[03.02.25 02:10:47] Starting epoch 13...
+[03.02.25 02:10:47] Train Loss: 0.6464266169304941
+[03.02.25 02:10:47] Evaluating after epoch 13...
+[03.02.25 02:10:47] NLL Loss: 0.39136545998709543
+[03.02.25 02:10:47] Current LR: 9.757729755661012e-06
+[03.02.25 02:10:47] Val Loss: 00.68, Accuracy: 00.75, Recall: 00.00, Precision: 00.00, Specificity: 01.00, F1: 00.00, AUC: 01.00
+[03.02.25 02:10:47] Saved checkpoint: ./save/train_classifier\tt-01\step_13
+[03.02.25 02:10:47] Removed checkpoint: ./save/train_classifier\tt-01\step_8
+[03.02.25 02:10:47] Starting epoch 14...
+[03.02.25 02:10:47] Train Loss: 0.6484453304141176
+[03.02.25 02:10:47] Evaluating after epoch 14...
+[03.02.25 02:10:47] NLL Loss: 0.39117142132350374
+[03.02.25 02:10:47] Current LR: 9.757729755661012e-06
+[03.02.25 02:10:47] Val Loss: 00.68, Accuracy: 00.75, Recall: 00.00, Precision: 00.00, Specificity: 01.00, F1: 00.00, AUC: 01.00
+[03.02.25 02:10:47] Saved checkpoint: ./save/train_classifier\tt-01\step_14
+[03.02.25 02:10:47] Removed checkpoint: ./save/train_classifier\tt-01\step_9
+[03.02.25 02:10:47] Starting epoch 15...
+[03.02.25 02:10:48] Train Loss: 0.6442875160890467
+[03.02.25 02:10:48] Evaluating after epoch 15...
+[03.02.25 02:10:48] NLL Loss: 0.3907613754272461
+[03.02.25 02:10:48] Current LR: 9.757729755661012e-06
+[03.02.25 02:10:48] Val Loss: 00.68, Accuracy: 01.00, Recall: 01.00, Precision: 01.00, Specificity: 01.00, F1: 01.00, AUC: 01.00
+[03.02.25 02:10:48] Saved checkpoint: ./save/train_classifier\tt-01\step_15
+[03.02.25 02:10:48] Removed checkpoint: ./save/train_classifier\tt-01\step_10
+[03.02.25 02:10:48] Starting epoch 16...
+[03.02.25 02:10:48] Train Loss: 0.6441621125913134
+[03.02.25 02:10:48] Evaluating after epoch 16...
+[03.02.25 02:10:48] NLL Loss: 0.38989710807800293
+[03.02.25 02:10:48] Current LR: 9.757729755661012e-06
+[03.02.25 02:10:48] Val Loss: 00.68, Accuracy: 01.00, Recall: 01.00, Precision: 01.00, Specificity: 01.00, F1: 01.00, AUC: 01.00
+[03.02.25 02:10:48] Saved checkpoint: ./save/train_classifier\tt-01\step_16
+[03.02.25 02:10:48] Removed checkpoint: ./save/train_classifier\tt-01\step_11
+[03.02.25 02:10:48] Starting epoch 17...
+[03.02.25 02:10:48] Train Loss: 0.6486661854912253
+[03.02.25 02:10:48] Evaluating after epoch 17...
+[03.02.25 02:10:48] NLL Loss: 0.3895214285169329
+[03.02.25 02:10:48] Current LR: 9.757729755661012e-06
+[03.02.25 02:10:48] Val Loss: 00.68, Accuracy: 01.00, Recall: 01.00, Precision: 01.00, Specificity: 01.00, F1: 01.00, AUC: 01.00
+[03.02.25 02:10:48] Saved checkpoint: ./save/train_classifier\tt-01\step_17
+[03.02.25 02:10:48] Removed checkpoint: ./save/train_classifier\tt-01\step_12
+[03.02.25 02:10:48] Starting epoch 18...
+[03.02.25 02:10:48] Train Loss: 0.6512516853856105
+[03.02.25 02:10:48] Evaluating after epoch 18...
+[03.02.25 02:10:48] NLL Loss: 0.3893967696598598
+[03.02.25 02:10:48] Current LR: 9.757729755661012e-06
+[03.02.25 02:10:48] Val Loss: 00.68, Accuracy: 01.00, Recall: 01.00, Precision: 01.00, Specificity: 01.00, F1: 01.00, AUC: 01.00
+[03.02.25 02:10:48] Saved checkpoint: ./save/train_classifier\tt-01\step_18
+[03.02.25 02:10:48] Removed checkpoint: ./save/train_classifier\tt-01\step_13
+[03.02.25 02:10:48] Starting epoch 19...
+[03.02.25 02:10:48] Train Loss: 0.6436882767022825
+[03.02.25 02:10:48] Evaluating after epoch 19...
+[03.02.25 02:10:48] NLL Loss: 0.38909717968532015
+[03.02.25 02:10:48] Current LR: 9.757729755661012e-06
+[03.02.25 02:10:48] Val Loss: 00.68, Accuracy: 01.00, Recall: 01.00, Precision: 01.00, Specificity: 01.00, F1: 01.00, AUC: 01.00
+[03.02.25 02:10:48] Saved checkpoint: ./save/train_classifier\tt-01\step_19
+[03.02.25 02:10:48] Removed checkpoint: ./save/train_classifier\tt-01\step_14
+[03.02.25 02:10:48] Starting epoch 20...
+[03.02.25 02:10:49] Train Loss: 0.6437325384102616
+[03.02.25 02:10:49] Evaluating after epoch 20...
+[03.02.25 02:10:49] NLL Loss: 0.38853897367204937
+[03.02.25 02:10:49] Current LR: 9.757729755661012e-06
+[03.02.25 02:10:49] Val Loss: 00.68, Accuracy: 01.00, Recall: 01.00, Precision: 01.00, Specificity: 01.00, F1: 01.00, AUC: 01.00
+[03.02.25 02:10:49] Saved checkpoint: ./save/train_classifier\tt-01\step_20
+[03.02.25 02:10:49] Removed checkpoint: ./save/train_classifier\tt-01\step_15
+[03.02.25 02:10:49] Starting epoch 21...
+[03.02.25 02:10:49] Train Loss: 0.6427604778140199
+[03.02.25 02:10:49] Evaluating after epoch 21...
+[03.02.25 02:10:49] NLL Loss: 0.388056823185512
+[03.02.25 02:10:49] Current LR: 9.757729755661012e-06
+[03.02.25 02:10:49] Val Loss: 00.68, Accuracy: 01.00, Recall: 01.00, Precision: 01.00, Specificity: 01.00, F1: 01.00, AUC: 01.00
+[03.02.25 02:10:49] Saved checkpoint: ./save/train_classifier\tt-01\step_21
+[03.02.25 02:10:49] Removed checkpoint: ./save/train_classifier\tt-01\step_16
+[03.02.25 02:10:49] Starting epoch 22...
+[03.02.25 02:10:49] Train Loss: 0.6331833998362223
+[03.02.25 02:10:49] Evaluating after epoch 22...
+[03.02.25 02:10:49] NLL Loss: 0.3873436450958252
+[03.02.25 02:10:49] Current LR: 9.757729755661012e-06
+[03.02.25 02:10:49] Val Loss: 00.68, Accuracy: 01.00, Recall: 01.00, Precision: 01.00, Specificity: 01.00, F1: 01.00, AUC: 01.00
+[03.02.25 02:10:49] Saved checkpoint: ./save/train_classifier\tt-01\step_22
+[03.02.25 02:10:49] Removed checkpoint: ./save/train_classifier\tt-01\step_17
+[03.02.25 02:10:49] Starting epoch 23...
+[03.02.25 02:10:49] Train Loss: 0.6363296742532768
+[03.02.25 02:10:49] Evaluating after epoch 23...
+[03.02.25 02:10:49] NLL Loss: 0.38677733285086496
+[03.02.25 02:10:49] Current LR: 9.757729755661012e-06
+[03.02.25 02:10:49] Val Loss: 00.68, Accuracy: 01.00, Recall: 01.00, Precision: 01.00, Specificity: 01.00, F1: 01.00, AUC: 01.00
+[03.02.25 02:10:49] Saved checkpoint: ./save/train_classifier\tt-01\step_23
+[03.02.25 02:10:49] Removed checkpoint: ./save/train_classifier\tt-01\step_18
+[03.02.25 02:10:49] Starting epoch 24...
+[03.02.25 02:10:50] Train Loss: 0.6451553316677318
+[03.02.25 02:10:50] Evaluating after epoch 24...
+[03.02.25 02:10:50] NLL Loss: 0.386333840233939
+[03.02.25 02:10:50] Current LR: 9.757729755661012e-06
+[03.02.25 02:10:50] Val Loss: 00.68, Accuracy: 00.75, Recall: 01.00, Precision: 00.50, Specificity: 00.67, F1: 00.67, AUC: 01.00
+[03.02.25 02:10:50] Saved checkpoint: ./save/train_classifier\tt-01\step_24
+[03.02.25 02:10:50] Removed checkpoint: ./save/train_classifier\tt-01\step_19
+[03.02.25 02:10:50] Starting epoch 25...
+[03.02.25 02:10:50] Train Loss: 0.6494688566993264
+[03.02.25 02:10:50] Evaluating after epoch 25...
+[03.02.25 02:10:50] NLL Loss: 0.3861471584865025
+[03.02.25 02:10:50] Current LR: 9.757729755661012e-06
+[03.02.25 02:10:50] Val Loss: 00.68, Accuracy: 00.75, Recall: 01.00, Precision: 00.50, Specificity: 00.67, F1: 00.67, AUC: 01.00
+[03.02.25 02:10:50] Saved checkpoint: ./save/train_classifier\tt-01\step_25
+[03.02.25 02:10:50] Removed checkpoint: ./save/train_classifier\tt-01\step_20
+[03.02.25 02:10:50] NLL Loss: 0.6494879208359063
+[03.02.25 02:10:50] NLL Loss: 0.3920187268938337
+[03.02.25 02:10:50] NLL Loss: 0.6845701783895493
+[03.02.25 02:10:50] Best train Loss: 00.69, Accuracy: 00.54, Recall: 00.28, Precision: 00.89, Specificity: 00.95, F1: 00.42, AUC: 00.75
+[03.02.25 02:10:50] Best val Loss: 00.69, Accuracy: 00.75, Recall: 00.00, Precision: 00.00, Specificity: 01.00, F1: 00.00, AUC: 01.00
+[03.02.25 02:10:50] Best test Loss: 00.68, Accuracy: 00.56, Recall: 00.40, Precision: 00.80, Specificity: 00.83, F1: 00.53, AUC: 00.70
+[03.02.25 02:10:50] Finish training, compute average results.
+[03.02.25 02:10:50] Train result: 0.746 ¡À 0.000
+[03.02.25 02:10:50] Validation result: 1.000 ¡À 0.000
+[03.02.25 02:10:50] Test result: 0.700 ¡À 0.000
