@@ -69,40 +69,97 @@ def get_model(args, log):
 
     return expander, encoder, predictor, epoch
 
-
-def train(epoch, expander, encoder, predictor, optimizer, train_loader, llm_embedding_X, log, device, edge_index):
+def create_batch_subgraph(original_edge_index, batch_indices, num_nodes_total, device):
     """
-    Train the model for one epoch using GCNPredictor for both classification and gene selection.
+    Create a subgraph from the original edge_index that only includes edges between nodes in the batch.
+    
+    Args:
+        original_edge_index (torch.Tensor): The original edge_index tensor (2, num_edges)
+        batch_indices (torch.Tensor): Indices of nodes in the current batch
+        num_nodes_total (int): Total number of nodes in the original graph
+        device (torch.device): Device to place tensors on
+        
+    Returns:
+        torch.Tensor: A new edge_index tensor for the batch subgraph
+    """
+    # Create a mask for each node indicating if it's in the batch
+    in_batch = torch.zeros(num_nodes_total, dtype=torch.bool, device=device)
+    in_batch[batch_indices] = True
+    
+    # Create a mapping from original node indices to batch-local indices
+    node_mapper = torch.full((num_nodes_total,), -1, dtype=torch.long, device=device)
+    node_mapper[batch_indices] = torch.arange(len(batch_indices), device=device)
+    
+    # Filter edges where both source and target nodes are in the batch
+    edge_mask = in_batch[original_edge_index[0]] & in_batch[original_edge_index[1]]
+    filtered_edges = original_edge_index[:, edge_mask]
+    
+    # If no edges remain, create self-loops as a fallback
+    if filtered_edges.shape[1] == 0 or edge_mask.sum() == 0:
+        batch_size = len(batch_indices)
+        batch_edge_index = torch.zeros((2, batch_size), dtype=torch.long, device=device)
+        batch_edge_index[0] = torch.arange(batch_size, device=device)
+        batch_edge_index[1] = torch.arange(batch_size, device=device)
+        return batch_edge_index
+    
+    # Remap node indices to be consecutive in the batch
+    remapped_edges = node_mapper[filtered_edges]
+    
+    # Add self-loops to ensure all nodes have at least one edge
+    # This is important for GCN to work properly with isolated nodes
+    has_edge = torch.zeros(len(batch_indices), dtype=torch.bool, device=device)
+    has_edge[remapped_edges[0]] = True
+    has_edge[remapped_edges[1]] = True
+    
+    # For nodes without any edges, add self-loops
+    isolated_nodes = torch.nonzero(~has_edge, as_tuple=True)[0]
+    if len(isolated_nodes) > 0:
+        self_loops = torch.stack([isolated_nodes, isolated_nodes], dim=0)
+        remapped_edges = torch.cat([remapped_edges, self_loops], dim=1)
+    
+    return remapped_edges
+
+
+def train(epoch, expander, encoder, predictor, optimizer, train_loader, llm_embedding_X, log, device, edge_index, num_nodes_total):
+    """
+    Train the model for one epoch using GCNPredictor with batch-specific subgraphs from the original edge_index.
     """
     sum_train_loss = 0
     
-    # Create a self-loop graph for each cell instead of using the provided edge_index
     with torch.enable_grad(), tqdm(total=len(train_loader.dataset)) as progress_bar:
-        for batch_x, batch_y in train_loader:
+        for i, (batch_x, batch_y) in enumerate(train_loader):
             batch_size = batch_x.size(0)
             batch_x = batch_x.to(device)
             batch_y = batch_y.to(device)
             
-            # Create a simple graph structure - each node connects to itself only
-            # This simplifies the GCN computation while still allowing message passing
-            num_nodes = batch_x.size(0)
-            local_edge_index = torch.zeros((2, num_nodes), dtype=torch.long, device=device)
-            local_edge_index[0] = torch.arange(num_nodes, device=device)
-            local_edge_index[1] = torch.arange(num_nodes, device=device)
+            # Get the indices of the nodes in this batch within the full dataset
+            start_idx = i * batch_size
+            end_idx = min((i + 1) * batch_size, num_nodes_total)
+            batch_indices = torch.arange(start_idx, end_idx, device=device)
             
-            # Create batch vector for GCNPredictor - simply the node indices since each node is its own batch
-            batch_vector = torch.arange(num_nodes, device=device)
+            # Handle last batch which might be smaller
+            if end_idx - start_idx < batch_size:
+                batch_size = end_idx - start_idx
+                batch_x = batch_x[:batch_size]
+                batch_y = batch_y[:batch_size]
+                batch_indices = batch_indices[:batch_size]
+            
+            # Create a subgraph for this batch from the original edge_index
+            batch_edge_index = create_batch_subgraph(edge_index, batch_indices, num_nodes_total, device)
+            
+            # Create a batch vector for GCNPredictor
+            batch_vector = torch.arange(batch_size, device=device)
             
             optimizer.zero_grad()
             
             # Step 1: Combine expression data with gene descriptions
             batch_x = expander(batch_x, llm_embedding_X)
             
-            # Step 2: Process through GCN with the simplified local graph
-            x_enc = encoder(batch_x, local_edge_index)
+            # Step 2: Process through GCN with the batch-specific edge_index
+            x_enc = encoder(batch_x, batch_edge_index)
             
             # Step 3: Make prediction and identify important genes
-            pred, gene_scores, perm = predictor(x_enc, local_edge_index, batch_vector)
+            pred, gene_scores, perm = predictor(x_enc, batch_edge_index, batch_vector)
             prediction = torch.log_softmax(pred, dim=-1)
             
             # Calculate loss with class weighting
@@ -131,9 +188,9 @@ def train(epoch, expander, encoder, predictor, optimizer, train_loader, llm_embe
     return
 
 
-def evaluate(encoder, expander, predictor, data_loader, llm_embedding_X, device, save_dir, epoch, log, args, test=False):
+def evaluate(encoder, expander, predictor, data_loader, llm_embedding_X, device, save_dir, epoch, log, args, edge_index, num_nodes_total, test=False):
     """
-    Evaluate the model using simplified inputs.
+    Evaluate the model using batch-specific subgraphs from the original edge_index.
     """
     nll_meter = train_utils.AverageMeter()
     metrics_meter = train_utils.MetricsMeter()
@@ -145,24 +202,33 @@ def evaluate(encoder, expander, predictor, data_loader, llm_embedding_X, device,
     with torch.no_grad(), tqdm(total=len(data_loader.dataset)) as progress_bar:
         sum_nll_loss = 0
 
-        for batch_x, batch_y in data_loader:
+        for i, (batch_x, batch_y) in enumerate(data_loader):
             batch_size = batch_x.size(0)
             batch_x = batch_x.to(device)
             batch_y = batch_y.to(device)
             
-            # Create a simple graph structure - each node connects to itself only
-            num_nodes = batch_x.size(0)
-            local_edge_index = torch.zeros((2, num_nodes), dtype=torch.long, device=device)
-            local_edge_index[0] = torch.arange(num_nodes, device=device)
-            local_edge_index[1] = torch.arange(num_nodes, device=device)
+            # Get the indices of the nodes in this batch within the full dataset
+            start_idx = i * batch_size
+            end_idx = min((i + 1) * batch_size, num_nodes_total)
+            batch_indices = torch.arange(start_idx, end_idx, device=device)
             
-            # Create batch vector for GCNPredictor - simply the node indices
-            batch_vector = torch.arange(num_nodes, device=device)
+            # Handle last batch which might be smaller
+            if end_idx - start_idx < batch_size:
+                batch_size = end_idx - start_idx
+                batch_x = batch_x[:batch_size]
+                batch_y = batch_y[:batch_size]
+                batch_indices = batch_indices[:batch_size]
+            
+            # Create a subgraph for this batch from the original edge_index
+            batch_edge_index = create_batch_subgraph(edge_index, batch_indices, num_nodes_total, device)
+            
+            # Create batch vector for GCNPredictor
+            batch_vector = torch.arange(batch_size, device=device)
 
-            # Process through the model
+            # Process through the model using the batch-specific edge_index
             batch_x = expander(batch_x, llm_embedding_X)
-            node_emb = encoder(batch_x, local_edge_index)
-            pred, gene_scores, perm = predictor(node_emb, local_edge_index, batch_vector)
+            node_emb = encoder(batch_x, batch_edge_index)
+            pred, gene_scores, perm = predictor(node_emb, batch_edge_index, batch_vector)
             prediction = torch.log_softmax(pred, dim=-1)
 
             # Calculate metrics
@@ -342,20 +408,22 @@ def main(args):
             collate_fn=simple_collate_fn
         )
 
-        # Train loop
+                    # Train loop
         log.info('Training the model on classification...')
+        num_nodes_total = expression.shape[0]  # Total number of cells
+        
         while epoch != args.num_epochs:
             epoch += 1
             log.info(f'Starting epoch {epoch}...')
 
             train(epoch, expander, encoder, predictor, optimizer, 
-                 train_loader, llm_embedding_X, log, device, edge_index)
+                 train_loader, llm_embedding_X, log, device, edge_index, num_nodes_total)
 
             # Evaluate and save checkpoint
             log.info(f'Evaluating after epoch {epoch}...')
             val_results = evaluate(encoder, expander, predictor, 
                                  val_loader, llm_embedding_X, device, 
-                                 args.save_dir, epoch, log, args, test=False)
+                                 args.save_dir, epoch, log, args, edge_index, num_nodes_total, test=False)
             
             model_dict = {
                 f"_expander_{run + 1}": expander,
@@ -375,7 +443,7 @@ def main(args):
             if saver.is_best(val_results[args.metric_name]):
                 test_results = evaluate(encoder, expander, predictor, 
                                       test_loader, llm_embedding_X, device, 
-                                      args.save_dir, epoch, log, args, test=True)
+                                      args.save_dir, epoch, log, args, edge_index, num_nodes_total, test=True)
                 results_str = ', '.join(f'{k}: {v:05.2f}' for k, v in test_results.items())
                 log.info(f'Test {results_str}')
 
@@ -389,10 +457,10 @@ def main(args):
         predictor, _ = train_utils.load_model(predictor, f"{args.save_dir}/best" + f"_predictor_{run + 1}.pth.tar", args.gpu_ids)
         
         # Get final results
-        train_results = evaluate(encoder, expander, predictor, train_loader, llm_embedding_X, device, args.save_dir, epoch, log, args, test=False)
+        train_results = evaluate(encoder, expander, predictor, train_loader, llm_embedding_X, device, args.save_dir, epoch, log, args, edge_index, num_nodes_total, test=False)
         best_train_results.append(train_results[args.metric_name])
-        val_results = evaluate(encoder, expander, predictor, val_loader, llm_embedding_X, device, args.save_dir, epoch, log, args, test=False)
-        test_results = evaluate(encoder, expander, predictor, test_loader, llm_embedding_X, device, args.save_dir, epoch, log, args, test=True)
+        val_results = evaluate(encoder, expander, predictor, val_loader, llm_embedding_X, device, args.save_dir, epoch, log, args, edge_index, num_nodes_total, test=False)
+        test_results = evaluate(encoder, expander, predictor, test_loader, llm_embedding_X, device, args.save_dir, epoch, log, args, edge_index, num_nodes_total, test=True)
         best_test_results.append(test_results[args.metric_name])
         
         # Log final results
