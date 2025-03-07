@@ -17,8 +17,171 @@ from tqdm import tqdm
 import data_utils
 import train_utils
 from args import get_classifier_args
-from models.models import GCNEncoder, GCNPredictor, DataExpander, SimpleDataset, simple_collate_fn
+from models.models import GCNEncoder, GCNPredictor, DataExpander, SimpleDataset,GATEncoder,GATPredictor, simple_collate_fn
 import os
+
+def validate_edge_index_processing(models, dataloader, edge_index, num_nodes_total, device, log=None):
+    """
+    Validates edge index processing across multiple batches.
+    
+    Args:
+        models: Tuple of model components (expander, encoder, predictor)
+        dataloader: DataLoader containing batches to validate
+        edge_index: The full graph edge index
+        num_nodes_total: Total number of nodes in the dataset
+        device: Device to place tensors on
+        log: Optional logger
+    
+    Returns:
+        dict: Statistics about the edge index processing
+    """
+    expander, encoder, predictor = models
+    
+    # Set models to evaluation mode
+    expander.eval()
+    encoder.eval()
+    predictor.eval()
+    
+    stats = {
+        'batches_processed': 0,
+        'total_nodes_processed': 0,
+        'nodes_with_edges': 0,
+        'isolated_nodes': 0,
+        'zero_edge_batches': 0,
+        'self_loop_counts': [],
+        'edge_counts': [],
+        'node_counts': []
+    }
+    
+    with torch.no_grad():
+        for i, (batch_x, batch_y) in enumerate(dataloader):
+            batch_size = batch_x.size(0)
+            
+            # Get the indices of the nodes in this batch
+            start_idx = i * batch_size
+            end_idx = min((i + 1) * batch_size, num_nodes_total)
+            batch_indices = torch.arange(start_idx, end_idx, device=device)
+            
+            # Handle last batch which might be smaller
+            if end_idx - start_idx < batch_size:
+                batch_size = end_idx - start_idx
+                batch_x = batch_x[:batch_size]
+                batch_y = batch_y[:batch_size]
+                batch_indices = batch_indices[:batch_size]
+            
+            # Create mask for nodes in batch
+            in_batch = torch.zeros(num_nodes_total, dtype=torch.bool, device=device)
+            in_batch[batch_indices] = True
+            
+            # Filter edges where both source and target are in the batch
+            edge_mask = in_batch[edge_index[0]] & in_batch[edge_index[1]]
+            filtered_edges = edge_index[:, edge_mask]
+            
+            # Count unique nodes with edges
+            if filtered_edges.shape[1] > 0:
+                connected_nodes = torch.unique(filtered_edges).numel()
+            else:
+                connected_nodes = 0
+                stats['zero_edge_batches'] += 1
+            
+            # Track isolated nodes
+            isolated_count = batch_size - connected_nodes
+            
+            # Create node mapping for checking remapped indices
+            node_mapper = torch.full((num_nodes_total,), -1, dtype=torch.long, device=device)
+            node_mapper[batch_indices] = torch.arange(len(batch_indices), device=device)
+            
+            # Check which nodes have no edges
+            if filtered_edges.shape[1] > 0:
+                remapped_edges = node_mapper[filtered_edges]
+                has_edge = torch.zeros(len(batch_indices), dtype=torch.bool, device=device)
+                has_edge[remapped_edges[0]] = True
+                has_edge[remapped_edges[1]] = True
+                isolated_nodes = (~has_edge).sum().item()
+            else:
+                isolated_nodes = batch_size
+            
+            # Update statistics
+            stats['batches_processed'] += 1
+            stats['total_nodes_processed'] += batch_size
+            stats['nodes_with_edges'] += (batch_size - isolated_nodes)
+            stats['isolated_nodes'] += isolated_nodes
+            stats['edge_counts'].append(filtered_edges.shape[1])
+            stats['node_counts'].append(batch_size)
+            stats['self_loop_counts'].append(isolated_nodes)
+            
+            # Log batch statistics
+            if log:
+                log.info(f"Batch {i}: {batch_size} nodes, {filtered_edges.shape[1]} edges, {isolated_nodes} isolated nodes")
+    
+    # Calculate summary statistics
+    if stats['batches_processed'] > 0:
+        stats['avg_nodes_per_batch'] = stats['total_nodes_processed'] / stats['batches_processed']
+        stats['avg_edges_per_batch'] = sum(stats['edge_counts']) / stats['batches_processed']
+        stats['avg_isolated_nodes_per_batch'] = stats['isolated_nodes'] / stats['batches_processed']
+        stats['isolated_node_percentage'] = (stats['isolated_nodes'] / stats['total_nodes_processed']) * 100
+    
+    # Reset models to training mode
+    expander.train()
+    encoder.train()
+    predictor.train()
+    
+    return stats
+
+def print_edge_index_stats(stats, log=None):
+    """Prints readable statistics from validate_edge_index_processing"""
+    
+    summary = [
+        f"Edge Index Processing Statistics:",
+        f"--------------------------------",
+        f"Batches processed: {stats['batches_processed']}",
+        f"Total nodes processed: {stats['total_nodes_processed']}",
+        f"Nodes with edges: {stats['nodes_with_edges']} ({100 - stats['isolated_node_percentage']:.2f}%)",
+        f"Isolated nodes: {stats['isolated_nodes']} ({stats['isolated_node_percentage']:.2f}%)",
+        f"Batches with zero edges: {stats['zero_edge_batches']}",
+        f"Average nodes per batch: {stats['avg_nodes_per_batch']:.2f}",
+        f"Average edges per batch: {stats['avg_edges_per_batch']:.2f}",
+        f"Average isolated nodes per batch: {stats['avg_isolated_nodes_per_batch']:.2f}"
+    ]
+    
+    message = "\n".join(summary)
+    if log:
+        log.info(message)
+    else:
+        print(message)
+    
+    return message
+
+def visualize_edge_distribution(stats):
+    """Creates visualizations of edge distribution across batches"""
+    import matplotlib.pyplot as plt
+    
+    fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(15, 5))
+    
+    # Plot edge counts per batch
+    ax1.bar(range(len(stats['edge_counts'])), stats['edge_counts'])
+    ax1.set_xlabel('Batch Index')
+    ax1.set_ylabel('Edge Count')
+    ax1.set_title('Edges per Batch')
+    
+    # Plot node counts per batch
+    ax2.bar(range(len(stats['node_counts'])), stats['node_counts'])
+    ax2.set_xlabel('Batch Index')
+    ax2.set_ylabel('Node Count')
+    ax2.set_title('Nodes per Batch')
+    
+    # Plot isolated node percentage per batch
+    isolated_pct = [s/n*100 for s, n in zip(stats['self_loop_counts'], stats['node_counts'])]
+    ax3.bar(range(len(isolated_pct)), isolated_pct)
+    ax3.set_xlabel('Batch Index')
+    ax3.set_ylabel('Isolated Node %')
+    ax3.set_title('Isolated Node Percentage per Batch')
+    
+    plt.tight_layout()
+    plt.savefig('edge_index_validation.png')
+    plt.close()
+    
+    return 'edge_index_validation.png'
 
 
 def get_model(args, log):
@@ -407,6 +570,26 @@ def main(args):
             drop_last=True,
             collate_fn=simple_collate_fn
         )
+
+        # Add validation before training
+        log.info("Validating edge index processing...")
+        edge_stats = validate_edge_index_processing(
+            models=(expander, encoder, predictor), 
+            dataloader=train_loader,
+            edge_index=edge_index,
+            num_nodes_total=expression.shape[0],
+            device=device,
+            log=log
+        )
+        print_edge_index_stats(edge_stats, log)
+        
+        # Optionally visualize results
+        try:
+            vis_path = visualize_edge_distribution(edge_stats)
+            log.info(f"Edge distribution visualization saved to {vis_path}")
+        except Exception as e:
+            log.warning(f"Could not create visualization: {e}")
+
 
                     # Train loop
         log.info('Training the model on classification...')
